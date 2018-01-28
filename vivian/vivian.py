@@ -4,9 +4,8 @@ import argparse
 import time
 import sys
 from multiprocessing import Pool
-from requests.exceptions import TooManyRedirects
+from requests.exceptions import TooManyRedirects, ConnectionError
 import requests
-from urllib3.exceptions import NewConnectionError
 
 
 def load_csv(file_path):
@@ -49,7 +48,7 @@ def verify_url(origin_url, expect_url, auth):
     except TooManyRedirects as err:
         no_fault = False
         err_msg = err
-    except NewConnectionError as err:
+    except ConnectionError as err:
         no_fault = False
         err_msg = err
     return {
@@ -59,7 +58,7 @@ def verify_url(origin_url, expect_url, auth):
         'dist_url': dist_url,
         'redirect_count': redirect_count,
         'is_match': dist_url == expect_url if is_redirect else True,
-        'is_pass': status_code in range(200, 399) and is_match and no_fault,
+        'is_pass': status_code in range(200, 400) and is_match and no_fault,
         'auth': auth,
         'err_msg': err_msg
     }
