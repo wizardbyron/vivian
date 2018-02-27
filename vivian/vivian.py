@@ -16,8 +16,8 @@ def load_csv(file_path):
     return cases
 
 
-def verify_url(origin_url, expect_url, auth):
-    print('verifying {0}'.format(origin_url))
+def verify_url(origin_url, expect_url, auth, line_num):
+    print('verifying {0} to {1}'.format(origin_url, expect_url))
     no_fault = True
     is_redirect = False
     err_msg = ""
@@ -52,12 +52,13 @@ def verify_url(origin_url, expect_url, auth):
         no_fault = False
         err_msg = err
     return {
+        'line':line_num,
         'status_code': status_code,
         'origin_url': origin_url,
         'expect_url': expect_url,
         'dist_url': dist_url,
         'redirect_count': redirect_count,
-        'is_match': dist_url == expect_url if is_redirect else True,
+        'is_match': dist_url == expect_url,
         'is_pass': status_code in range(200, 400) and is_match and no_fault,
         'auth': auth,
         'err_msg': err_msg
@@ -71,20 +72,31 @@ def multi_thread_verify(cases, auth, thread_num):
     start_time = time.time()
     pool = Pool(processes=thread_num)
     results = []
+    line_num = 0
     for case in cases:
+        line_num += 1
         origin = case[0].strip()
         expect = case[1].strip()
-        result = pool.apply_async(verify_url, args=(origin, expect, auth, ))
+        result = pool.apply_async(verify_url, args=(origin, expect, auth, line_num))
         results.append(result)
     pool.close()
     pool.join()
+    print('Failed cases:')
+    print('============================================================')
     for result in results:
-        if result.get()['is_pass']:
+        if result.get()['is_match']:
             pass_count += 1
         else:
             fail_count += 1
             failed_cases.append(result.get())
-            print('FAIL:{0}'.format(result.get()))
+            print('  line: {0}'.format(result.get()['line']))
+            print('origin: {0}'.format(result.get()['origin_url']))
+            print('  dist: {0}'.format(result.get()['dist_url']))
+            print('expect: {0}'.format(result.get()['expect_url']))
+            print('status: {0}'.format(result.get()['status_code']))
+            print('redirect_count:{0}'.format(result.get()['redirect_count']))
+            print('------------------------------------------------------------')
+
     end_time = time.time()
     print("{0}/{1} PASS in {2} seconds".format(pass_count, len(cases), end_time-start_time))
     return 0 if fail_count > 0 else 1
