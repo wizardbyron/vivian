@@ -99,7 +99,7 @@ def multi_thread_verify(cases, auth, thread_num):
 
     end_time = time.time()
     print("{0}/{1} PASS in {2} seconds".format(pass_count, len(cases), end_time-start_time))
-    return 0 if fail_count > 0 else 1
+    return 1 if fail_count > 0 else 0
 
 
 def main():
