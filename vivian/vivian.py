@@ -98,6 +98,9 @@ def multi_thread_verify(cases, auth, thread_num):
             print('------------------------------------------------------------')
 
     end_time = time.time()
+    if fail_count > 0:
+        print("No failed case.")
+    print('============================================================')
     print("{0}/{1} PASS in {2} seconds".format(pass_count, len(cases), end_time-start_time))
     return 1 if fail_count > 0 else 0
 
@@ -107,6 +110,7 @@ def main():
     parser.add_argument("-a", "--auth", help="basic auth in \"<username>:<password>\" format")
     parser.add_argument("-f", "--file", help="full path of .csv file")
     parser.add_argument("-n", "--number", type=int, help="thread number")
+    parser.add_argument("-v", "--version", action='version', version='%(prog)s 0.0.1dev3')
     args = parser.parse_args()
     print('load test case from {0}'.format(args.file))
     cases = load_csv(args.file)

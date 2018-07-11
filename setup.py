@@ -5,12 +5,12 @@ from distutils.core import setup
 
 setup(
     name = "vivian",
-    packages = ["vivian"],
-    version = "0.0.1.dev3",
+    packages = find_packages(),
+    version = "0.0.1.dev7",
     description = "vivian is CLI for veirfying URLs redirection from file in multi-thread mode. It's easy to integrated with CI in smoke or regression test.",
     author = "wizardbyron",
     author_email = "wizard0530@gmail.com",
-    url = "https://github.com/wizardbyron",
+    url = "https://github.com/wizardbyron/vivian",
     keywords = ["url", "redirection", "redirect", "verify", "test", "tests"],
     classifiers = [
         "Programming Language :: Python",
