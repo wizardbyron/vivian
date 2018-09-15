@@ -6,7 +6,7 @@ from distutils.core import setup
 setup(
     name = "vivian",
     packages = find_packages(),
-    version = "0.0.1.dev7",
+    version = "0.0.1.dev8",
     description = "vivian is CLI for veirfying URLs redirection from file in multi-thread mode. It's easy to integrated with CI in smoke or regression test.",
     author = "wizardbyron",
     author_email = "wizard0530@gmail.com",

@@ -21,7 +21,7 @@ def verify_url(origin_url, expect_url, auth, line_num):
     no_fault = True
     is_redirect = False
     err_msg = ""
-    status_code = 200
+    status_code = ""
     redirect_count = 0
     is_match = True
     dist_url = ""
@@ -65,12 +65,12 @@ def verify_url(origin_url, expect_url, auth, line_num):
     }
 
 
-def multi_thread_verify(cases, auth, thread_num):
+def multi_process_verify(cases, auth, process_num):
     pass_count = 0
     fail_count = 0
     failed_cases = []
     start_time = time.time()
-    pool = Pool(processes=thread_num)
+    pool = Pool(processes=process_num)
     results = []
     line_num = 0
     for case in cases:
@@ -98,7 +98,7 @@ def multi_thread_verify(cases, auth, thread_num):
             print('------------------------------------------------------------')
 
     end_time = time.time()
-    if fail_count > 0:
+    if fail_count == 0:
         print("No failed case.")
     print('============================================================')
     print("{0}/{1} PASS in {2} seconds".format(pass_count, len(cases), end_time-start_time))
@@ -109,20 +109,20 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-a", "--auth", help="basic auth in \"<username>:<password>\" format")
     parser.add_argument("-f", "--file", help="full path of .csv file")
-    parser.add_argument("-n", "--number", type=int, help="thread number")
+    parser.add_argument("-n", "--number", type=int, help="process number")
     parser.add_argument("-v", "--version", action='version', version='%(prog)s 0.0.1dev3')
     args = parser.parse_args()
     print('load test case from {0}'.format(args.file))
     cases = load_csv(args.file)
-    thread_num = args.number if args.number else len(cases)
+    process_num = args.number if args.number else len(cases)
     auth = {}
     if args.auth:
         auth = {
             'username': args.auth.split(':')[0],
             'password': args.auth.split(':')[1]
         }
-    print("{0} cases loaded running in {1} threads".format(len(cases),thread_num))
-    exit_value = multi_thread_verify(cases, auth, thread_num)
+    print("{0} cases loaded running in {1} processs".format(len(cases),round(process_num, 4)))
+    exit_value = multi_process_verify(cases, auth, process_num)
     sys.exit(exit_value)
 
 
