@@ -6,8 +6,8 @@ from distutils.core import setup
 setup(
     name = "vivian",
     packages = find_packages(),
-    version = "0.0.1.dev8",
-    description = "vivian is CLI for veirfying URLs redirection from file in multi-thread mode. It's easy to integrated with CI in smoke or regression test.",
+    version = "0.0.1.dev9",
+    description = "vivian is a multi-process CLI tool for URLs redirection veirfication by loading cases from a csv file. It's easy to integrated with pipeline for smoking or regression test.",
     author = "wizardbyron",
     author_email = "wizard0530@gmail.com",
     url = "https://github.com/wizardbyron/vivian",

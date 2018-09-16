@@ -9,7 +9,7 @@ import requests
 
 
 def load_csv(file_path):
-    csv_reader = csv.reader(open(file_path, encoding='utf-8'))
+    csv_reader = csv.reader(open(file_path))
     cases = []
     for row in csv_reader:
         cases.append(row)
