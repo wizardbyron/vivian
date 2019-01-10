@@ -6,6 +6,7 @@ import sys
 from multiprocessing import Pool
 from requests.exceptions import TooManyRedirects, ConnectionError
 import requests
+import urllib
 
 
 def load_csv(file_path):
@@ -16,60 +17,56 @@ def load_csv(file_path):
     return cases
 
 
+def request(url, auth):
+    if auth:
+        username = auth['username']
+        password = auth['password']
+        response = requests.get(url, auth=(username, password))
+    else:
+        response = requests.get(url)
+    return response
+
+
+def is_ok_status(status_code):
+    return status_code in range(200, 400)
+
+
 def verify_url(origin_url, expect_url, auth, line_num):
-    print('verifying {0} to {1}'.format(origin_url, expect_url))
     no_fault = True
-    is_redirect = False
     err_msg = ""
     status_code = ""
     redirect_count = 0
-    is_match = True
-    dist_url = ""
+    actual_url = origin_url
     try:
-        if auth:
-            username = auth['username']
-            password = auth['password']
-            response = requests.get(origin_url, auth=(username, password))
-        else:
-            response = requests.get(origin_url)
-        is_redirect = len(response.history) > 0
-        if is_redirect:
-            last_url = response.history[-1].headers['Location']
-            if auth:
-                username = auth['username']
-                password = auth['password']
-                last_auth_response = requests.get(last_url, auth=(username, password))
-                last_status_code = last_auth_response.status_code
-            else:
-                last_status_code = requests.get(last_url).status_code
-        dist_url = response.history[-1].headers['Location'] if is_redirect else origin_url
+        response = request(origin_url, auth)
+        status_code = response.status_code
         redirect_count = len(response.history)
-        status_code = last_status_code if is_redirect else response.status_code
+        if redirect_count > 0:
+            actual_url = response.history[-1].headers['Location']
+            status_code = request(actual_url, auth).status_code
     except TooManyRedirects as err:
         no_fault = False
         err_msg = err
     except ConnectionError as err:
         no_fault = False
         err_msg = err
+
+    is_match = urllib.unquote(actual_url) == expect_url
     return {
-        'line':line_num,
+        'line': line_num,
         'status_code': status_code,
         'origin_url': origin_url,
         'expect_url': expect_url,
-        'dist_url': dist_url,
+        'actual_url': actual_url,
         'redirect_count': redirect_count,
-        'is_match': dist_url == expect_url,
-        'is_pass': status_code in range(200, 400) and is_match and no_fault,
+        'is_match': is_match,
+        'is_pass': (is_ok_status(status_code) and is_match and no_fault),
         'auth': auth,
         'err_msg': err_msg
     }
 
 
-def multi_process_verify(cases, auth, process_num):
-    pass_count = 0
-    fail_count = 0
-    failed_cases = []
-    start_time = time.time()
+def running_in_pool(cases, auth, process_num):
     pool = Pool(processes=process_num)
     results = []
     line_num = 0
@@ -81,28 +78,51 @@ def multi_process_verify(cases, auth, process_num):
         results.append(result)
     pool.close()
     pool.join()
-    print('Failed cases:')
-    print('============================================================')
-    for result in results:
-        if result.get()['is_match']:
-            pass_count += 1
-        else:
-            fail_count += 1
-            failed_cases.append(result.get())
-            print('  line: {0}'.format(result.get()['line']))
-            print('origin: {0}'.format(result.get()['origin_url']))
-            print('  dist: {0}'.format(result.get()['dist_url']))
-            print('expect: {0}'.format(result.get()['expect_url']))
-            print('status: {0}'.format(result.get()['status_code']))
-            print('redirect_count:{0}'.format(result.get()['redirect_count']))
-            print('------------------------------------------------------------')
+    return results
 
+
+def multi_process_verify(cases, auth, process_num):
+    start_time = time.time()
+    results = running_in_pool(cases, auth, process_num)
     end_time = time.time()
-    if fail_count == 0:
-        print("No failed case.")
-    print('============================================================')
-    print("{0}/{1} PASS in {2} seconds".format(pass_count, len(cases), end_time-start_time))
+    case_count = len(cases)
+    pass_count = len(filter(lambda r: r.get()['is_pass'], results))
+    fail_count = case_count - pass_count
+    print_cases_message(results, case_count, pass_count, end_time - start_time)
     return 1 if fail_count > 0 else 0
+
+
+def print_cases_message(results, case_count, pass_count, time_cost):
+    for result in results:
+        status_code = result.get()['status_code']
+        if is_ok_status(status_code):
+            format_status = format_passed_message(status_code)
+        else:
+            format_status = format_failed_message(status_code)
+
+        if result.get()['is_pass']:
+            format_passed = format_passed_message('YES')
+        else:
+            format_passed = format_failed_message('NO')
+
+        print('------------------------------------------------------------')
+        print('          line: {0}'.format(result.get()['line']))
+        print('        origin: {0}'.format(result.get()['origin_url']))
+        print('        expect: {0}'.format(result.get()['expect_url']))
+        print('        actual: {0}'.format(result.get()['actual_url']))
+        print(' response code: {0}'.format(format_status))
+        print('        passed: {0}'.format(format_passed))
+        print('redirect count: {0}'.format(result.get()['redirect_count']))
+        print('------------------------------------------------------------')
+    print("{0}/{1} PASS in {2} seconds".format(pass_count, case_count, time_cost))
+
+
+def format_failed_message(message):
+    return '\033[0;31m{0}\033[0m'.format(message)
+
+
+def format_passed_message(message):
+    return '\033[0;32m{0}\033[0m'.format(message)
 
 
 def main():
@@ -121,7 +141,7 @@ def main():
             'username': args.auth.split(':')[0],
             'password': args.auth.split(':')[1]
         }
-    print("{0} cases loaded running in {1} processs".format(len(cases),round(process_num, 4)))
+    print("{0} cases loaded running in {1} process".format(len(cases), round(process_num, 4)))
     exit_value = multi_process_verify(cases, auth, process_num)
     sys.exit(exit_value)
 

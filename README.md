@@ -37,7 +37,7 @@ here is the explaination for the output：
 **status_code**: the http status code of last request. 
 **origin_url**: the url you request in the file.
 **expect_url**: the url you expect in the file.
-**dist_url**: the destination url you get when you made a url request.
+**actual_url**: the destination url you get when you made a url request.
 **redirect_count**: how many redirection happened when you request from origin url.
 **is_match**: if `expect_url` is same as `dist_url`, this value would be True, else it will be False.
 **is_pass**: if the last request http status code between `200` to `399` and `is_match` is Ture, this value would be True, else it will be False.
