@@ -1,24 +1,31 @@
 # vivian
+
 vivian is a multi thread CLI for veirfying a large number of URLs redirection. It's easy to integrated with CI in smoke or regression test.
 
 ## Installation
-```
+
+```shell
 pip3 install vivian
 ```
+
 or
-```
+
+```shell
 pipenv install vivian
 ```
 
 ## Usage
+
 You can load a large number or URLs redirection pair from a `.csv` file. Like this `example.csv`:
-```
+
+```csv
 http://www.github.com, https://www.github.com
 http://www.google.com, https://www.google.com.hk
 ```
 
 Then you can virify the url pairs via vivian:
-```
+
+```shell
 vivian -f example.csv
 ```
 
@@ -42,18 +49,16 @@ here is the explaination for the output：
 **is_match**: if `expect_url` is same as `dist_url`, this value would be True, else it will be False.
 **is_pass**: if the last request http status code between `200` to `399` and `is_match` is Ture, this value would be True, else it will be False.
 
-
 ## Best Practices
 
-
 ### TDD for Redirection
+
 Before you write url rewrite rules in `nginx.conf` or `.htaccess`, you can write the rules as test cases in the `.csv`. The flow will be like `Green-Red-Green` in a TDD style. It is a good way to protect your exsisting http server configure and you can refactor the configure with fully confidence.
 
 ### Integrated with CI Server
-You can keep the test case file as in your codebase as regression test or smoke test after deploy or changed http server congiuration.
 
+You can keep the test case file as in your codebase as regression test or smoke test after deploy or changed http server congiuration.
 
 ## License
 
 [MIT License](./LICENSE)
-
