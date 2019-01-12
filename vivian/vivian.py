@@ -4,6 +4,7 @@ import argparse
 import time
 import sys
 from multiprocessing import Pool
+from __version__ import __version__
 from requests.exceptions import TooManyRedirects, ConnectionError
 import requests
 import urllib
@@ -130,7 +131,7 @@ def main():
     parser.add_argument("-a", "--auth", help="basic auth in \"<username>:<password>\" format")
     parser.add_argument("-f", "--file", help="full path of .csv file")
     parser.add_argument("-n", "--number", type=int, help="process number")
-    parser.add_argument("-v", "--version", action='version', version='%(prog)s 0.0.1dev3')
+    parser.add_argument("-v", "--version", action='version', version=__version__)
     args = parser.parse_args()
     print('load test case from {0}'.format(args.file))
     cases = load_csv(args.file)
