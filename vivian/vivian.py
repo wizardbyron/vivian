@@ -1,14 +1,24 @@
 #!/usr/bin/env python
+from __version__ import __version__
 import csv
 import argparse
 import time
 import sys
 from multiprocessing import Pool
-from __version__ import __version__
 from requests.exceptions import TooManyRedirects, ConnectionError
 import requests
 import urllib
+try:
+    from builtins import filter
+except ImportError:
+    pass
 
+try:
+    #Python 3
+    from urllib.parse import unquote
+except ImportError:
+    #Python 2
+    from urllib import unquote
 
 def load_csv(file_path):
     csv_reader = csv.reader(open(file_path))
@@ -52,7 +62,7 @@ def verify_url(origin_url, expect_url, auth, line_num):
         no_fault = False
         err_msg = err
 
-    is_match = urllib.unquote(actual_url) == expect_url
+    is_match = unquote(actual_url) == expect_url
     return {
         'line': line_num,
         'status_code': status_code,
@@ -87,7 +97,7 @@ def multi_process_verify(cases, auth, process_num):
     results = running_in_pool(cases, auth, process_num)
     end_time = time.time()
     case_count = len(cases)
-    pass_count = len(filter(lambda r: r.get()['is_pass'], results))
+    pass_count = len(list(filter(lambda r: r.get()['is_pass'], results)))
     fail_count = case_count - pass_count
     print_cases_message(results, case_count, pass_count, end_time - start_time)
     return 1 if fail_count > 0 else 0
