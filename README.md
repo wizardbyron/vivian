@@ -1,5 +1,7 @@
 # vivian
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/0d43ebb0ce5e4276b308132eec2644d9)](https://app.codacy.com/app/wizardbyron/vivian?utm_source=github.com&utm_medium=referral&utm_content=wizardbyron/vivian&utm_campaign=Badge_Grade_Dashboard)
+
 vivian is a multi thread CLI for veirfying a large number of URLs redirection. It's easy to integrated with CI in smoke or regression test.
 
 ## Installation
